@@ -1,70 +1,175 @@
-# Getting Started with Create React App
+# GRE Essay Evaluator
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A React application that evaluates GRE Analytical Writing essays using Claude AI and the [official ETS scoring rubric](https://www.ets.org/gre/test-takers/general-test/prepare/content/analytical-writing/scoring.html).
 
-## Available Scripts
+Students submit an essay topic and their written response. The app returns a score from **0 to 6** (in half-point increments) along with detailed feedback on position, development, organization, language, and mechanics.
 
-In the project directory, you can run:
+## Features
 
-### `npm start`
+- **Two inputs**: essay topic (Analyze an Issue prompt) and essay content
+- **AI evaluation**: powered by Claude via a secure Netlify serverless function
+- **Official rubric**: scoring aligned with ETS GRE Analytical Writing criteria
+- **Detailed feedback**: score label, summary, strengths, improvements, and per-criterion analysis
+- **Netlify-ready**: deploy globally with one click
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Prerequisites
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- Node.js 18+
+- An [Anthropic API key](https://console.anthropic.com/)
 
-### `npm test`
+## Local Development
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+1. **Install dependencies**
 
-### `npm run build`
+   ```bash
+   npm install
+   ```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+2. **Configure environment variables**
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+   Copy the example env file and add your API key:
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+   ```bash
+   cp .env.example .env
+   ```
 
-### `npm run eject`
+   Edit `.env` and set:
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+   ```
+   ANTHROPIC_API_KEY=your_api_key_here
+   ```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+3. **Run the app**
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+   ```bash
+   npm start
+   ```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+   This starts:
+   - **API server** on port **3001** (evaluation endpoint)
+   - **React app** on port **3000** (UI) — waits until the API is healthy
 
-## Learn More
+   Open [http://localhost:3000](http://localhost:3000).
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+   You should see output like:
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+   ```
+   [api] Local API server running at http://localhost:3001
+   [web] Compiled successfully!
+   ```
 
-### Code Splitting
+   **Alternative — Netlify Dev (mirrors production)**
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+   ```bash
+   npm run dev
+   ```
 
-### Analyzing the Bundle Size
+   Open [http://localhost:8888](http://localhost:8888).
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## Troubleshooting local startup
 
-### Making a Progressive Web App
+### Port already in use
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+If you see `Port 3001 is already in use`, a previous dev server is still running:
 
-### Advanced Configuration
+```bash
+npm run stop
+npm start
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+### API not reachable / HTML instead of JSON
 
-### Deployment
+Make sure **both** servers are running. Do not use `npm run start:web` alone — that starts React without the API.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+Verify the API is up:
 
-### `npm run build` fails to minify
+```bash
+curl http://localhost:3001/health
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Expected response: `{"status":"ok","service":"essay-evaluator-api","hasApiKey":true}`
+
+### Missing API key
+
+Ensure `.env` exists and contains:
+
+```
+ANTHROPIC_API_KEY=your_key_here
+```
+
+Restart after changing `.env`.
+
+## Deploy to Netlify
+
+### Option A: Deploy from Git (recommended)
+
+1. Push this repository to GitHub, GitLab, or Bitbucket.
+2. Log in to [Netlify](https://www.netlify.com/) and click **Add new site → Import an existing project**.
+3. Connect your repository. Netlify will detect the settings from `netlify.toml`:
+   - **Build command:** `npm run build`
+   - **Publish directory:** `build`
+   - **Functions directory:** `netlify/functions`
+4. Add an environment variable in **Site settings → Environment variables**:
+   - `ANTHROPIC_API_KEY` = your Anthropic API key
+5. Deploy. Your site will be live at a `*.netlify.app` URL.
+
+### Option B: Deploy from CLI
+
+```bash
+npm install
+npm run build
+npx netlify deploy --prod
+```
+
+Set `ANTHROPIC_API_KEY` in the Netlify dashboard before testing evaluation in production.
+
+## Project Structure
+
+```
+essay-evaluator/
+├── netlify/
+│   └── functions/
+│       └── evaluate-essay.js   # Serverless function — calls Claude API
+├── netlify.toml                # Netlify build & redirect config
+├── src/
+│   ├── App.js                  # Main UI
+│   ├── components/
+│   │   └── EvaluationResult.js # Score & feedback display
+│   └── services/
+│       └── evaluateEssay.js    # API client
+└── public/
+```
+
+## How Scoring Works
+
+The serverless function sends the essay and topic to Claude with a system prompt containing the full ETS Analytical Writing scoring guide, including:
+
+- Overall score level descriptions (6 down to 0)
+- Analyze an Issue task criteria for each score band
+- Instructions to return structured JSON with score, feedback, and criterion-level analysis
+
+Scores follow the official scale: **0 to 6 in half-point increments** (e.g., 4, 4.5, 5).
+
+## Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `ANTHROPIC_API_KEY` | Yes | Your Anthropic API key (server-side only) |
+| `ANTHROPIC_MODEL` | No | Claude model override (default: `claude-sonnet-4-20250514`) |
+| `REACT_APP_EVALUATE_API_URL` | No | API endpoint override for the React app |
+
+## Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm start` | Start API + React (recommended) |
+| `npm run stop` | Stop stale dev servers on ports 3000/3001 |
+| `npm run dev` | Start with Netlify Dev (production-like) |
+| `npm run start:web` | Start React only (API unavailable) |
+| `npm run start:api` | Start local API server only |
+| `npm run build` | Production build |
+| `npm test` | Run tests |
+
+## License
+
+MIT

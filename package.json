@@ -13,10 +13,23 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "prestart": "node scripts/check-env.js",
+    "start": "concurrently --kill-others-on-fail -n api,web -c blue,green \"node scripts/local-api.js\" \"wait-on -t 15000 http-get://127.0.0.1:3001/health && react-scripts start\"",
+    "start:web": "react-scripts start",
+    "start:api": "node scripts/local-api.js",
+    "stop": "node scripts/stop-servers.js",
+    "dev": "netlify dev",
     "build": "react-scripts build",
-    "test": "react-scripts test",
+    "test": "react-scripts test --watchAll=false",
     "eject": "react-scripts eject"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "http-proxy-middleware": "^3.0.5",
+    "netlify-cli": "^23.5.0",
+    "wait-on": "^8.0.5"
   },
   "eslintConfig": {
     "extends": [
