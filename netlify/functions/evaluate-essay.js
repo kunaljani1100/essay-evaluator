@@ -174,7 +174,7 @@ exports.handler = async (event) => {
     };
   }
 
-  const model = process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-20250514';
+  const model = process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-6';
 
   const userMessage = `Evaluate the following GRE "Analyze an Issue" essay.
 
